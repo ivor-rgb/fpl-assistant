@@ -53,16 +53,19 @@ def log_run(team_id, gameweek):
                   json={"team_id": team_id, "gameweek": gameweek}, timeout=15)
 
 
-def save_recommendation(team_id, gameweek, transfer, starting_xi_summary, chips):
+def save_recommendation(team_id, gameweek, transfer_scenarios, starting_xi_summary, chips):
+    """
+    transfer_scenarios: the list returned by optimizer.suggest_transfers
+    (one entry per transfer count evaluated: 0, 1, 2). Stored whole as
+    JSON rather than picking one, since the report itself presents all
+    of them as options rather than a single recommendation.
+    """
     if not is_configured():
         return
     requests.post(_table_url("recommendations"), headers=HEADERS, json={
         "team_id": team_id,
         "gameweek": gameweek,
-        "transfers_out": transfer["transfers_out"],
-        "transfers_in": transfer["transfers_in"],
-        "hit_taken": transfer["hit_taken"],
-        "expected_points_gain": transfer["expected_points_gain"],
+        "transfer_scenarios": transfer_scenarios,
         "starting_xi": starting_xi_summary,
         "chip_evaluations": chips,
     }, timeout=15)
