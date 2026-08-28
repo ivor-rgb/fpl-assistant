@@ -1,0 +1,50 @@
+name: FPL Weekly Report
+
+on:
+  schedule:
+    # Runs daily at 08:00 UTC. main.py itself checks how close the next
+    # deadline is and only actually generates a report when it's within
+    # the reporting window, so most days this just exits quickly.
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Generate a report right now regardless of deadline timing"
+        required: false
+        default: "false"
+
+permissions:
+  contents: write  # needed so the job can push the report file back to the repo
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run weekly report
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          cd src
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            python main.py --force
+          else
+            python main.py
+          fi
+
+      - name: Commit and push report
+        run: |
+          git config user.name "fpl-assistant-bot"
+          git config user.email "actions@github.com"
+          git add reports/
+          git diff --staged --quiet || git commit -m "Weekly report: $(date -u +'%Y-%m-%d')"
+          git push

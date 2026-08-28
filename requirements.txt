@@ -1,0 +1,2 @@
+requests>=2.31
+pulp>=2.7
