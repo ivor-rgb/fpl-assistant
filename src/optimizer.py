@@ -107,15 +107,20 @@ def suggest_transfers(current_squad_ids, bank_units, free_transfers, elements_by
     xp_totals: {player_id: decay-weighted expected points over the horizon}
 
     Solves a genuine MILP (via PuLP/CBC) for the best possible 15-man
-    squad, separately for exactly 0, 1 and 2 transfers, then compares
-    the three net of any hit. Restricting the candidate pool to each
-    position's top-scoring players (by xp_totals) keeps the model small
-    and fast, at negligible cost, a player who wouldn't crack the top
-    30 at their position by expected points is never going to be the
-    optimiser's pick anyway.
+    squad, separately for exactly 0, 1 and 2 transfers, then returns
+    ALL of them as distinct scenarios (Hold / Best single move / Best
+    double move) rather than picking one winner, since which is
+    actually worth it often comes down to judgement calls this doesn't
+    model (rotation risk tolerance, how sure you are about a specific
+    player, whether you'd rather bank the free transfer). Restricting
+    the candidate pool to each position's top-scoring players (by
+    xp_totals) keeps the model small and fast, at negligible cost, a
+    player who wouldn't crack the top 30 at their position by expected
+    points is never going to be the optimiser's pick anyway.
 
-    Returns a dict with transfers_out, transfers_in, hit_taken,
-    transfers_used, and expected_points_gain (net of any hit).
+    Returns a list of scenario dicts, each with transfers_out,
+    transfers_in, hit_taken, transfers_used, and expected_points_gain
+    (net of any hit), ordered by transfers_used (0, 1, 2).
     """
     current_set = set(current_squad_ids)
     current_xp = sum(xp_totals.get(pid, 0) for pid in current_squad_ids)
@@ -136,7 +141,7 @@ def suggest_transfers(current_squad_ids, bank_units, free_transfers, elements_by
         candidate_pool.update(ids[:30])
     candidate_list = list(candidate_pool)
 
-    best_option = None
+    scenarios = []
 
     for transfers_used in range(0, max_transfers_considered + 1):
         prob = pulp.LpProblem(f"squad_{transfers_used}_transfers", pulp.LpMaximize)
@@ -171,21 +176,18 @@ def suggest_transfers(current_squad_ids, bank_units, free_transfers, elements_by
         hit = max(0, transfers_used - free_transfers) * hit_cost
         net = new_xp - hit
 
-        if best_option is None or net > best_option["_net"]:
-            outs = [pid for pid in current_squad_ids if pid not in new_squad]
-            ins = [pid for pid in new_squad if pid not in current_squad_ids]
-            best_option = {
-                "transfers_out": outs,
-                "transfers_in": ins,
-                "hit_taken": hit,
-                "transfers_used": transfers_used,
-                "expected_points_gain": round(net - current_xp, 2),
-                "new_squad_xp": round(net, 2),
-                "_net": net,
-            }
+        outs = [pid for pid in current_squad_ids if pid not in new_squad]
+        ins = [pid for pid in new_squad if pid not in current_squad_ids]
+        scenarios.append({
+            "transfers_out": outs,
+            "transfers_in": ins,
+            "hit_taken": hit,
+            "transfers_used": transfers_used,
+            "expected_points_gain": round(net - current_xp, 2),
+            "new_squad_xp": round(net, 2),
+        })
 
-    best_option.pop("_net", None)
-    return best_option
+    return scenarios
 
 
 def evaluate_chips(current_squad_ids, elements_by_id, gw_scores, xp_totals,
