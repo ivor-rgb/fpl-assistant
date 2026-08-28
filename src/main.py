@@ -57,8 +57,8 @@ def main():
         print("Not within the reporting window yet, exiting without sending anything.")
         return
 
-    if supabase_store.already_processed(team_id, next_event["id"]):
-        print("Already sent a report for this gameweek, exiting to avoid a duplicate email.")
+    if not force_run and supabase_store.already_processed(team_id, next_event["id"]):
+        print("Already generated a report for this gameweek, exiting to avoid a duplicate.")
         return
 
     elements_by_id = {e["id"]: e for e in bootstrap["elements"]}
@@ -94,8 +94,8 @@ def main():
     print("Working out the best starting XI...")
     xi = optimizer.best_starting_xi(squad_ids, elements_by_id, gw_scores)
 
-    print("Searching for the best transfer(s)...")
-    transfer = optimizer.suggest_transfers(
+    print("Searching for the best transfer scenarios...")
+    transfer_scenarios = optimizer.suggest_transfers(
         squad_ids, bank, free_transfers, elements_by_id, xp_totals,
         max_transfers_considered=2, hit_cost=FREE_TRANSFER_HIT_COST,
     )
@@ -130,7 +130,7 @@ def main():
         "gameweek": next_event["id"],
         "deadline": deadline_str,
         "elements_by_id": elements_by_id,
-        "transfer": transfer,
+        "transfer_scenarios": transfer_scenarios,
         "starting_xi": xi,
         "gw_scores": gw_scores,
         "chips": chips,
@@ -149,7 +149,7 @@ def main():
         "starting_xi": [elements_by_id[pid]["web_name"] for pid in xi["starting_xi"]],
         "captain": elements_by_id[xi["captain"]]["web_name"],
     }
-    supabase_store.save_recommendation(team_id, next_event["id"], transfer, starting_xi_summary, chips)
+    supabase_store.save_recommendation(team_id, next_event["id"], transfer_scenarios, starting_xi_summary, chips)
     predictions = [{"player_id": pid, "predicted_points": pts} for pid, pts in gw_scores.items()]
     supabase_store.save_player_predictions(next_event["id"], predictions)
 
