@@ -1,10 +1,21 @@
 # FPL Weekly Report — Gameweek 2
 **Deadline:** 2026-08-28T17:30:00Z
 
-## Recommended Transfer
+## Transfer Scenarios
+Pick whichever fits how you feel about the week, these aren't ranked, they're options.
+
+### Hold (no transfers)
+No changes. Squad's projected expected points over the horizon: **183.3**
+
+### Best single move
+**OUT:** Diomande  
+**IN:** Bijol (free transfer(s))  
+Net change vs. holding, over the horizon: **+25.5 points**
+
+### Best double move
 **OUT:** Gravenberch, Diomande  
 **IN:** Justin, Gakpo (takes a -4 hit)  
-Projected net gain over the horizon: **42.3 points**
+Net change vs. holding, over the horizon: **+42.3 points**
 
 ## Recommended Starting XI (3-4-3)
 | Player | Expected pts (this GW) |
@@ -21,7 +32,13 @@ Projected net gain over the horizon: **42.3 points**
 | Calvert-Lewin | 3.4 |
 | Brobbey | 2.7 |
 
-**Bench:** Gravenberch, Roefs, Ballard, Diomande
+**Bench** (in the order they'd come on):
+| Player | Expected pts (this GW) |
+|---|---|
+| Gravenberch | 2.5 |
+| Roefs | 2.3 |
+| Ballard | 2.2 |
+| Diomande | 0.0 |
 
 ## Chip Watch
 - **Wildcard**: An unconstrained rebuild projects 171.6 points higher than your current squad over the horizon.
