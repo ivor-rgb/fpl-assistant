@@ -30,12 +30,14 @@ def is_configured():
 
 
 def already_processed(team_id, gameweek):
-    """Checks the run_log table to avoid sending a duplicate report if
-    the workflow happens to run more than once before a deadline."""
+    """Checks the fpl_run_log table to avoid sending a duplicate report
+    if the workflow happens to run more than once before a deadline.
+    Named fpl_run_log rather than run_log since this Supabase project
+    already had an unrelated table called run_log from another project."""
     if not is_configured():
         return False
     resp = requests.get(
-        _table_url("run_log"),
+        _table_url("fpl_run_log"),
         headers=HEADERS,
         params={"team_id": f"eq.{team_id}", "gameweek": f"eq.{gameweek}", "select": "id"},
         timeout=15,
@@ -47,7 +49,7 @@ def already_processed(team_id, gameweek):
 def log_run(team_id, gameweek):
     if not is_configured():
         return
-    requests.post(_table_url("run_log"), headers=HEADERS,
+    requests.post(_table_url("fpl_run_log"), headers=HEADERS,
                   json={"team_id": team_id, "gameweek": gameweek}, timeout=15)
 
 

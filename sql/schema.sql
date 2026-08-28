@@ -1,6 +1,6 @@
 -- Run this once in your Supabase project's SQL editor before first use.
 
-create table if not exists run_log (
+create table if not exists fpl_run_log (
     id bigint generated always as identity primary key,
     team_id bigint not null,
     gameweek int not null,
