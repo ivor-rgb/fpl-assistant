@@ -11,13 +11,13 @@ import os
 def build_markdown_report(context):
     """
     context is a dict assembled in main.py with everything the report
-    needs: gameweek, deadline, elements_by_id, transfer, starting_xi,
-    gw_scores, chips, league_snapshots (list of {"name":..., "standings":[...]})
+    needs: gameweek, deadline, elements_by_id, transfer_scenarios,
+    starting_xi, gw_scores, chips, league_snapshots (list of
+    {"name":..., "standings":[...]})
     """
     gw = context["gameweek"]
     deadline = context["deadline"]
     elements_by_id = context["elements_by_id"]
-    transfer = context["transfer"]
     xi = context["starting_xi"]
     gw_scores = context["gw_scores"]
     chips = context["chips"]
@@ -27,17 +27,27 @@ def build_markdown_report(context):
 
     lines = [f"# FPL Weekly Report — Gameweek {gw}", f"**Deadline:** {deadline}", ""]
 
-    lines.append("## Recommended Transfer")
-    if transfer["transfers_used"] == 0:
-        lines.append("No transfer clears the bar this week, holding is the recommendation.")
-    else:
-        outs = ", ".join(name(p) for p in transfer["transfers_out"])
-        ins = ", ".join(name(p) for p in transfer["transfers_in"])
-        hit_note = f"takes a -{transfer['hit_taken']} hit" if transfer["hit_taken"] else "free transfer"
-        lines.append(f"**OUT:** {outs}  ")
-        lines.append(f"**IN:** {ins} ({hit_note})  ")
-        lines.append(f"Projected net gain over the horizon: **{transfer['expected_points_gain']:.1f} points**")
+    lines.append("## Transfer Scenarios")
+    lines.append("Pick whichever fits how you feel about the week, these aren't ranked, they're options.")
     lines.append("")
+    scenario_labels = {0: "Hold (no transfers)", 1: "Best single move", 2: "Best double move"}
+    for scenario in context["transfer_scenarios"]:
+        label = scenario_labels.get(scenario["transfers_used"], f"{scenario['transfers_used']} transfers")
+        lines.append(f"### {label}")
+        if scenario["transfers_used"] == 0:
+            lines.append(f"No changes. Squad's projected expected points over the horizon: **{scenario['new_squad_xp']:.1f}**")
+        else:
+            outs = ", ".join(name(p) for p in scenario["transfers_out"])
+            ins = ", ".join(name(p) for p in scenario["transfers_in"])
+            hit_note = f"takes a -{scenario['hit_taken']} hit" if scenario["hit_taken"] else "free transfer(s)"
+            lines.append(f"**OUT:** {outs}  ")
+            lines.append(f"**IN:** {ins} ({hit_note})  ")
+            lines.append(f"Net change vs. holding, over the horizon: **{scenario['expected_points_gain']:+.1f} points**")
+        lines.append("")
+    # Note: the starting XI and captain below are chosen from your
+    # CURRENT squad, not from any of the scenarios above, since which
+    # transfer scenario you go with is your call. If you make a
+    # transfer, next week's XI will reflect the resulting squad.
 
     lines.append(f"## Recommended Starting XI ({xi['formation']})")
     lines.append("| Player | Expected pts (this GW) |")
@@ -46,8 +56,12 @@ def build_markdown_report(context):
         tag = " (C)" if pid == xi["captain"] else (" (VC)" if pid == xi["vice_captain"] else "")
         lines.append(f"| {name(pid)}{tag} | {gw_scores.get(pid, 0):.1f} |")
     lines.append("")
-    bench_names = ", ".join(name(pid) for pid in xi["bench"])
-    lines.append(f"**Bench:** {bench_names}")
+
+    lines.append("**Bench** (in the order they'd come on):")
+    lines.append("| Player | Expected pts (this GW) |")
+    lines.append("|---|---|")
+    for pid in xi["bench"]:
+        lines.append(f"| {name(pid)} | {gw_scores.get(pid, 0):.1f} |")
     lines.append("")
 
     lines.append("## Chip Watch")
