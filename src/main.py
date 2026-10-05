@@ -30,7 +30,7 @@ def load_settings():
         return json.load(f)
 
 
-def hours_until(deadline_iso):
+    scenario_labels = {0: "Hold (no transfers)", 1: "Best single move", 2: "Best double move", 3: "Best triple move"}
     deadline = datetime.fromisoformat(deadline_iso.replace("Z", "+00:00"))
     now = datetime.now(timezone.utc)
     return (deadline - now).total_seconds() / 3600.0
@@ -97,7 +97,7 @@ def main():
     print("Searching for the best transfer scenarios...")
     transfer_scenarios = optimizer.suggest_transfers(
         squad_ids, bank, free_transfers, elements_by_id, xp_totals,
-        max_transfers_considered=2, hit_cost=FREE_TRANSFER_HIT_COST,
+        max_transfers_considered=3, hit_cost=FREE_TRANSFER_HIT_COST,
     )
 
     print("Evaluating chips...")
