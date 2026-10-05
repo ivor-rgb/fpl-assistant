@@ -9,6 +9,7 @@ Run automatically via .github/workflows/weekly.yml
 import json
 import os
 import sys
+import unicodedata
 from datetime import datetime, timezone
 
 import fpl_api
@@ -34,6 +35,141 @@ def hours_until(deadline_iso):
     deadline = datetime.fromisoformat(deadline_iso.replace("Z", "+00:00"))
     now = datetime.now(timezone.utc)
     return (deadline - now).total_seconds() / 3600.0
+
+
+def _norm(text):
+    """Lower-case, strip accents, so 'Joao Pedro' matches 'João Pedro'."""
+    text = text.replace("ß", "ss")
+    text = unicodedata.normalize("NFKD", text)
+    return text.encode("ascii", "ignore").decode().lower().strip()
+
+
+def _find_players(query, bootstrap):
+    """Match 'Tarkowski', 'Joao Pedro' or 'Gabriel (ARS)' to FPL players."""
+    team_filter = None
+    query = query.strip()
+    if query.endswith(")") and "(" in query:
+        query, team_filter = query.rsplit("(", 1)
+        team_filter = team_filter.rstrip(") ").strip().upper()
+    q = _norm(query)
+    short = {t["id"]: t["short_name"].upper() for t in bootstrap["teams"]}
+    matches = [
+        e for e in bootstrap["elements"]
+        if _norm(e["web_name"]) == q
+        or _norm(e["second_name"]) == q
+        or _norm(f"{e['first_name']} {e['second_name']}") == q
+    ]
+    if team_filter:
+        matches = [e for e in matches if short[e["team"]] == team_filter]
+    return matches
+
+
+def build_current_squad(picks_data, api_transfers, next_event_id, manual_transfers,
+                        bootstrap, elements_by_id):
+    """
+    The FPL picks endpoint only shows the squad as it was at the last
+    deadline, so transfers you've made since then are missing. This starts
+    from that squad and applies, in order:
+      1. any transfers the FPL API already lists for the upcoming gameweek
+      2. any you've listed in settings.json under "transfers_made",
+         written as "Out > In" (add the club if a surname is shared,
+         e.g. "Gabriel (ARS)")
+    Returns (squad_ids, bank, applied, warnings). `applied` is a list of
+    (out_id, in_id). If the result isn't a valid squad, everything is
+    ignored and the last-deadline squad is returned with a warning.
+    """
+    squad = [p["element"] for p in picks_data["picks"]]
+    bank = picks_data["entry_history"]["bank"]
+    original_squad, original_bank = list(squad), bank
+    applied, warnings = [], []
+
+    pending = sorted(
+        (t for t in api_transfers if t["event"] == next_event_id),
+        key=lambda t: t["time"],
+    )
+    for t in pending:
+        if t["element_out"] in squad and t["element_in"] not in squad:
+            squad.remove(t["element_out"])
+            squad.append(t["element_in"])
+            bank += t["element_out_cost"] - t["element_in_cost"]
+            applied.append((t["element_out"], t["element_in"]))
+
+    for entry in manual_transfers:
+        if ">" not in entry:
+            warnings.append(f"Couldn't read '{entry}'. Write transfers as 'Out > In'.")
+            continue
+        out_name, in_name = [part.strip() for part in entry.split(">", 1)]
+        out_matches = _find_players(out_name, bootstrap)
+        in_matches = _find_players(in_name, bootstrap)
+        out_in_squad = [e for e in out_matches if e["id"] in squad]
+        in_in_squad = [e for e in in_matches if e["id"] in squad]
+
+        if not out_in_squad and in_in_squad:
+            continue  # already applied (the API now shows it too)
+        if not out_matches:
+            warnings.append(f"Couldn't find a player called '{out_name}' (from '{entry}'). Check the spelling.")
+            continue
+        if not out_in_squad:
+            warnings.append(f"'{out_name}' (from '{entry}') isn't in your squad.")
+            continue
+        if len(out_in_squad) > 1:
+            warnings.append(f"'{out_name}' (from '{entry}') matches more than one player in your squad. Add the club, e.g. 'Gabriel (ARS)'.")
+            continue
+        if not in_matches:
+            warnings.append(f"Couldn't find a player called '{in_name}' (from '{entry}'). Check the spelling.")
+            continue
+        if len(in_matches) > 1:
+            warnings.append(f"'{in_name}' (from '{entry}') matches more than one player. Add the club, e.g. 'Gabriel (ARS)'.")
+            continue
+        out_e, in_e = out_in_squad[0], in_matches[0]
+        if in_e["id"] in squad:
+            warnings.append(f"{in_e['web_name']} (from '{entry}') is already in your squad.")
+            continue
+        squad.remove(out_e["id"])
+        squad.append(in_e["id"])
+        # Selling prices aren't public, so current prices are used here.
+        bank += out_e["now_cost"] - in_e["now_cost"]
+        applied.append((out_e["id"], in_e["id"]))
+
+    if len(squad) != 15 or not optimizer._squad_valid(squad, elements_by_id):
+        warnings.append(
+            "Those transfers don't leave a valid squad (check positions and the "
+            "3 per club limit), so they've been ignored and your last gameweek "
+            "squad is used."
+        )
+        return original_squad, original_bank, [], warnings
+    if bank < 0:
+        warnings.append(
+            "Your bank comes out negative, so one of these transfers may not be "
+            "affordable, or selling prices differ from current prices."
+        )
+    return squad, bank, applied, warnings
+
+
+def squad_notes_markdown(gameweek, last_event, applied, warnings, bank,
+                         free_start, free_left, elements_by_id):
+    name = lambda pid: elements_by_id[pid]["web_name"]
+    lines = ["## Squad used for this report"]
+    if applied:
+        lines.append(f"Your GW{last_event} squad plus {len(applied)} transfer(s) made for GW{gameweek}:")
+        for out_id, in_id in applied:
+            lines.append(f"- {name(out_id)} > {name(in_id)}")
+    else:
+        lines.append(
+            f"No transfers found for GW{gameweek}, so this uses your GW{last_event} "
+            "squad as it stands. If you've made transfers, add them to "
+            "`transfers_made` in settings.json (for example `\"Collins > Tarkowski\"`) "
+            "and run again."
+        )
+    lines.append("")
+    lines.append(
+        f"Bank: £{bank / 10:.1f}m. Free transfers: {free_start} at the start of "
+        f"the week, {len(applied)} used, {free_left} left."
+    )
+    for warning in warnings:
+        lines.append("")
+        lines.append(f"**Heads up:** {warning}")
+    return "\n".join(lines)
 
 
 def main():
@@ -65,8 +201,15 @@ def main():
 
     print("Fetching your current squad...")
     picks_data = fpl_api.get_picks(team_id, current_event)
-    squad_ids = [p["element"] for p in picks_data["picks"]]
-    bank = picks_data["entry_history"]["bank"]
+    try:
+        api_transfers = fpl_api.get_transfers(team_id)
+    except Exception as exc:
+        print(f"  [warn] couldn't fetch transfer history: {exc}")
+        api_transfers = []
+    squad_ids, bank, applied_transfers, squad_warnings = build_current_squad(
+        picks_data, api_transfers, next_event["id"],
+        settings.get("transfers_made", []), bootstrap, elements_by_id,
+    )
 
     # The public API doesn't expose "free transfers currently available"
     # directly, only a season-long transfer count, and working it out
@@ -74,7 +217,10 @@ def main():
     # full transfer history. Rather than guess, this is read from
     # settings.json, update it yourself each week (it's shown on the
     # FPL site's transfers page) until a future version calculates it.
-    free_transfers = settings.get("free_transfers", 1)
+    # "free_transfers" in settings.json is how many you had at the START of
+    # the gameweek. Transfers you've already made use some of them up.
+    free_start = settings.get("free_transfers", 1)
+    free_transfers = max(0, free_start - len(applied_transfers))
 
     print("Computing team strength ratings...")
     team_form = team_strength.compute_team_form(fixtures, bootstrap["teams"])
@@ -137,6 +283,15 @@ def main():
         "league_snapshots": league_snapshots,
     }
     html = report.build_markdown_report(context)
+    notes = squad_notes_markdown(
+        next_event["id"], current_event, applied_transfers, squad_warnings,
+        bank, free_start, free_transfers, elements_by_id,
+    )
+    report_lines = html.split("\n")
+    insert_at = next((i + 1 for i, line in enumerate(report_lines)
+                      if line.startswith("**Deadline:**")), 0)
+    report_lines[insert_at:insert_at] = ["", notes]
+    html = "\n".join(report_lines)
 
     print("Writing report to the repo and the Actions summary...")
     repo_root = os.path.join(os.path.dirname(__file__), "..")
