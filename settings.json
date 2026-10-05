@@ -1,7 +1,7 @@
 {
   "team_id": 5291254,
   "league_ids": [1004091, 163257],
-  "free_transfers": 1,
+  "free_transfers": 3,
   "horizon_gws": 5,
   "hit_threshold": "balanced"
 }
