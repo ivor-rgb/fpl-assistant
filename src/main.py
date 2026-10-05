@@ -30,7 +30,7 @@ def load_settings():
         return json.load(f)
 
 
-    scenario_labels = {0: "Hold (no transfers)", 1: "Best single move", 2: "Best double move", 3: "Best triple move"}
+def hours_until(deadline_iso):
     deadline = datetime.fromisoformat(deadline_iso.replace("Z", "+00:00"))
     now = datetime.now(timezone.utc)
     return (deadline - now).total_seconds() / 3600.0
