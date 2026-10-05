@@ -1,6 +1,11 @@
 # FPL Weekly Report — Gameweek 6
 **Deadline:** 2026-10-10T10:00:00Z
 
+## Squad used for this report
+No transfers found for GW6, so this uses your GW5 squad as it stands. If you've made transfers, add them to `transfers_made` in settings.json (for example `"Collins > Tarkowski"`) and run again.
+
+Bank: £1.5m. Free transfers: 3 at the start of the week, 0 used, 3 left.
+
 ## Transfer Scenarios
 Pick whichever fits how you feel about the week, these aren't ranked, they're options.
 
