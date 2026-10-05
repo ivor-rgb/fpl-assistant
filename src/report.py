@@ -30,7 +30,7 @@ def build_markdown_report(context):
     lines.append("## Transfer Scenarios")
     lines.append("Pick whichever fits how you feel about the week, these aren't ranked, they're options.")
     lines.append("")
-    scenario_labels = {0: "Hold (no transfers)", 1: "Best single move", 2: "Best double move"}
+    scenario_labels = {0: "Hold (no transfers)", 1: "Best single move", 2: "Best double move", 3: "Best triple move"}
     for scenario in context["transfer_scenarios"]:
         label = scenario_labels.get(scenario["transfers_used"], f"{scenario['transfers_used']} transfers")
         lines.append(f"### {label}")
