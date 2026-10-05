@@ -17,6 +17,11 @@ Net change vs. holding, over the horizon: **+24.2 points**
 **IN:** Groß, Tarkowski (free transfer(s))  
 Net change vs. holding, over the horizon: **+43.1 points**
 
+### Best triple move
+**OUT:** Ballard, Gravenberch, Collins  
+**IN:** Groß, Tarkowski, Hall (free transfer(s))  
+Net change vs. holding, over the horizon: **+55.1 points**
+
 ## Recommended Starting XI (3-4-3)
 | Player | Expected pts (this GW) |
 |---|---|
