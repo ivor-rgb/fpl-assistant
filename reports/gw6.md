@@ -2,56 +2,60 @@
 **Deadline:** 2026-10-10T10:00:00Z
 
 ## Squad used for this report
-No transfers found for GW6, so this uses your GW5 squad as it stands. If you've made transfers, add them to `transfers_made` in settings.json (for example `"Collins > Tarkowski"`) and run again.
+Your GW5 squad plus 3 transfer(s) made for GW6:
+- Collins > Tarkowski
+- Ballard > Hall
+- Gravenberch > Groß
 
-Bank: £1.5m. Free transfers: 3 at the start of the week, 0 used, 3 left.
+Bank: £0.2m. Free transfers: 3 at the start of the week, 3 used, 0 left.
 
 ## Transfer Scenarios
 Pick whichever fits how you feel about the week, these aren't ranked, they're options.
 
 ### Hold (no transfers)
-No changes. Squad's projected expected points over the horizon: **199.4**
+No changes. Squad's projected expected points over the horizon: **240.8**
 
 ### Best single move
-**OUT:** Collins  
-**IN:** Tarkowski (free transfer(s))  
-Net change vs. holding, over the horizon: **+24.2 points**
+**OUT:** Brobbey  
+**IN:** Barry (takes a -4 hit)  
+Net change vs. holding, over the horizon: **+12.7 points**
 
 ### Best double move
-**OUT:** Gravenberch, Collins  
-**IN:** Groß, Tarkowski (free transfer(s))  
-Net change vs. holding, over the horizon: **+43.1 points**
+**OUT:** Palmer, Brobbey  
+**IN:** Barry, Gibbs-White (takes a -8 hit)  
+Net change vs. holding, over the horizon: **+17.3 points**
 
 ### Best triple move
-**OUT:** Ballard, Gravenberch, Collins  
-**IN:** Groß, Tarkowski, Hall (free transfer(s))  
-Net change vs. holding, over the horizon: **+55.1 points**
+**OUT:** Palmer, Brobbey, João Pedro  
+**IN:** Barry, Isak, Gibbs-White (takes a -12 hit)  
+Net change vs. holding, over the horizon: **+19.7 points**
 
-## Recommended Starting XI (3-4-3)
+## Recommended Starting XI (5-4-1)
 | Player | Expected pts (this GW) |
 |---|---|
-| Tzolakis (VC) | 4.9 |
+| Tzolakis | 4.9 |
+| Tarkowski (C) | 6.7 |
+| Hall (VC) | 6.5 |
 | Gabriel | 4.8 |
 | Justin | 4.7 |
 | Calafiori | 3.9 |
-| B.Fernandes (C) | 5.0 |
+| Groß | 6.1 |
+| B.Fernandes | 5.0 |
 | Schade | 4.7 |
 | Dewsbury-Hall | 3.6 |
-| Palmer | 2.8 |
 | Calvert-Lewin | 4.7 |
-| Brobbey | 3.7 |
-| João Pedro | 2.6 |
 
 **Bench** (in the order they'd come on):
 | Player | Expected pts (this GW) |
 |---|---|
 | Raya | 4.2 |
-| Ballard | 1.9 |
-| Gravenberch | 1.0 |
-| Collins | 0.0 |
+| Palmer | 2.8 |
+| João Pedro | 2.6 |
+| Brobbey | 0.0 |
 
 ## Chip Watch
-- **Wildcard**: An unconstrained rebuild projects 63.6 points higher than your current squad over the horizon.
+- **Bench Boost**: Your bench is projected 9.7 points this week.
+- **Wildcard**: An unconstrained rebuild projects 22.3 points higher than your current squad over the horizon.
 
 ## PGA Fantasy League
 | Rank | Manager | Points |
