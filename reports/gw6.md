@@ -13,7 +13,7 @@ Bank: £0.2m. Free transfers: 3 at the start of the week, 3 used, 0 left.
 Pick whichever fits how you feel about the week, these aren't ranked, they're options.
 
 ### Hold (no transfers)
-No changes. Squad's projected expected points over the horizon: **240.8**
+No changes. Squad's projected expected points over the horizon: **256.2**
 
 ### Best single move
 **OUT:** Brobbey  
@@ -23,14 +23,14 @@ Net change vs. holding, over the horizon: **+12.7 points**
 ### Best double move
 **OUT:** Palmer, Brobbey  
 **IN:** Barry, Gibbs-White (takes a -8 hit)  
-Net change vs. holding, over the horizon: **+17.3 points**
+Net change vs. holding, over the horizon: **+13.8 points**
 
 ### Best triple move
-**OUT:** Palmer, Brobbey, João Pedro  
-**IN:** Barry, Isak, Gibbs-White (takes a -12 hit)  
-Net change vs. holding, over the horizon: **+19.7 points**
+**OUT:** Dewsbury-Hall, Palmer, Brobbey  
+**IN:** Barry, Mbeumo, Gibbs-White (takes a -12 hit)  
+Net change vs. holding, over the horizon: **+15.6 points**
 
-## Recommended Starting XI (5-4-1)
+## Recommended Starting XI (5-3-2)
 | Player | Expected pts (this GW) |
 |---|---|
 | Tzolakis | 4.9 |
@@ -42,20 +42,19 @@ Net change vs. holding, over the horizon: **+19.7 points**
 | Groß | 6.1 |
 | B.Fernandes | 5.0 |
 | Schade | 4.7 |
-| Dewsbury-Hall | 3.6 |
+| João Pedro | 5.9 |
 | Calvert-Lewin | 4.7 |
 
 **Bench** (in the order they'd come on):
 | Player | Expected pts (this GW) |
 |---|---|
 | Raya | 4.2 |
-| Palmer | 2.8 |
-| João Pedro | 2.6 |
+| Palmer | 3.8 |
+| Dewsbury-Hall | 3.6 |
 | Brobbey | 0.0 |
 
 ## Chip Watch
-- **Bench Boost**: Your bench is projected 9.7 points this week.
-- **Wildcard**: An unconstrained rebuild projects 22.3 points higher than your current squad over the horizon.
+- **Bench Boost**: Your bench is projected 11.6 points this week.
 
 ## PGA Fantasy League
 | Rank | Manager | Points |
