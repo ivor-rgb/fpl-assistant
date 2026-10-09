@@ -13,48 +13,48 @@ Bank: £0.2m. Free transfers: 3 at the start of the week, 3 used, 0 left.
 Pick whichever fits how you feel about the week, these aren't ranked, they're options.
 
 ### Hold (no transfers)
-No changes. Squad's projected expected points over the horizon: **256.2**
+No changes. Squad's projected expected points over the horizon: **240.4**
 
 ### Best single move
 **OUT:** Brobbey  
 **IN:** Barry (takes a -4 hit)  
-Net change vs. holding, over the horizon: **+12.7 points**
+Net change vs. holding, over the horizon: **+14.1 points**
 
 ### Best double move
 **OUT:** Palmer, Brobbey  
-**IN:** Barry, Gibbs-White (takes a -8 hit)  
-Net change vs. holding, over the horizon: **+13.8 points**
+**IN:** Barry, Mbeumo (takes a -8 hit)  
+Net change vs. holding, over the horizon: **+15.1 points**
 
 ### Best triple move
-**OUT:** Dewsbury-Hall, Palmer, Brobbey  
-**IN:** Barry, Mbeumo, Gibbs-White (takes a -12 hit)  
-Net change vs. holding, over the horizon: **+15.6 points**
+**OUT:** Raya, Palmer, Brobbey  
+**IN:** Barry, Trafford, Mbeumo (takes a -12 hit)  
+Net change vs. holding, over the horizon: **+14.8 points**
 
-## Recommended Starting XI (5-3-2)
+## Recommended Starting XI (5-4-1)
 | Player | Expected pts (this GW) |
 |---|---|
 | Tzolakis | 4.9 |
-| Tarkowski (C) | 6.7 |
-| Hall (VC) | 6.5 |
-| Gabriel | 4.8 |
-| Justin | 4.7 |
-| Calafiori | 3.9 |
-| Groß | 6.1 |
-| B.Fernandes | 5.0 |
-| Schade | 4.7 |
-| João Pedro | 5.9 |
-| Calvert-Lewin | 4.7 |
+| Hall | 5.3 |
+| Tarkowski | 4.8 |
+| Gabriel | 4.4 |
+| Justin | 4.2 |
+| Calafiori | 4.0 |
+| B.Fernandes (C) | 5.9 |
+| Groß (VC) | 5.4 |
+| Schade | 4.8 |
+| Palmer | 4.5 |
+| João Pedro | 5.3 |
 
 **Bench** (in the order they'd come on):
 | Player | Expected pts (this GW) |
 |---|---|
-| Raya | 4.2 |
-| Palmer | 3.8 |
-| Dewsbury-Hall | 3.6 |
+| Raya | 4.0 |
+| Calvert-Lewin | 3.9 |
+| Dewsbury-Hall | 3.9 |
 | Brobbey | 0.0 |
 
 ## Chip Watch
-- **Bench Boost**: Your bench is projected 11.6 points this week.
+- **Bench Boost**: Your bench is projected 11.9 points this week.
 
 ## PGA Fantasy League
 | Rank | Manager | Points |
