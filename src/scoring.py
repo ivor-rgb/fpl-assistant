@@ -102,6 +102,31 @@ def _player_recent_form(history, pos):
     }
 
 
+def _drop_recent_absences(history, element):
+    """
+    A player who has just returned from a short injury or suspension would
+    otherwise be marked down twice: the live FPL flag says he's fit, but the
+    0-minute games he missed still drag his average minutes down (a regular
+    starter missing one game would be treated as a 60-minute player).
+
+    If FPL now lists him as fully available, and his 1 to 3 most recent
+    gameweeks are 0-minute games that followed a run of regular starts
+    (averaging 60+ minutes over the 3 games before), those missed games are
+    treated as an absence and left out of the form calculation.
+    """
+    if element.get("status") != "a" or element.get("chance_of_playing_next_round") not in (None, 100):
+        return history
+    trailing = 0
+    while trailing < len(history) and history[-1 - trailing]["minutes"] == 0:
+        trailing += 1
+    if trailing == 0 or trailing > 3:
+        return history
+    before = history[: len(history) - trailing]
+    if len(before) < 3 or sum(h["minutes"] for h in before[-3:]) / 3 < 60:
+        return history
+    return before
+
+
 def _availability_multiplier(element):
     """Dampens expected minutes for injury/suspension doubt."""
     status = element.get("status", "a")
@@ -142,6 +167,7 @@ def build_expected_points(bootstrap, fixtures, element_summaries, team_form,
     for pid, element in elements_by_id.items():
         summary = element_summaries.get(pid)
         history = summary["history"] if summary else []
+        history = _drop_recent_absences(history, element)
         pos = element["element_type"]
         form = _player_recent_form(history, pos) if history else {
             "xg_per90": 0.0, "xa_per90": 0.0, "avg_minutes": 0.0,
