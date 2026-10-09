@@ -4,17 +4,23 @@ Expected points (xP) model.
 For each player, for each upcoming fixture in the horizon, this estimates
 FPL points from:
   - attacking output: recent per-90 xG and xA, scaled by expected minutes
-  - clean sheet / goals conceded: from team_strength, position-weighted
-  - defensive contribution: recent per-match average (this is now a direct
-    points source under current FPL rules, not just a bonus-points input)
-  - bonus: recent per-match average, as a small additional term
+    and by how leaky the opponent is (and home or away)
+  - clean sheet / goals conceded: from team_strength, adjusted for venue
+    (GK and DEF 4 points, MID 1 point)
+  - defensive contribution: how often he hits the threshold, smoothed
+    toward the league rate for his position
+  - bonus: his season bonus rate, smoothed toward the league rate for his
+    position (bonus is very noisy, so the smoothing is strong)
   - availability: injury/suspension flags dampen expected minutes
+  - double gameweeks: each fixture is scored and the points are added up
 
 This is a weighted heuristic built from public underlying stats, not a
 trained model. It is deliberately transparent so each number can be
 sanity-checked against what actually happened.
 """
-from team_strength import clean_sheet_probability, expected_goals_conceded
+import math
+
+from team_strength import expected_goals_conceded
 
 FORM_WINDOW = 6          # gameweeks of history to look back over
 RECENT_WEIGHTS = [1, 1, 2, 2, 3, 4]  # most recent match weighted highest
@@ -28,6 +34,24 @@ RECENT_WEIGHTS = [1, 1, 2, 2, 3, 4]  # most recent match weighted highest
 PRIOR_MINUTES = 270
 PRIOR_XG_PER90 = {1: 0.00, 2: 0.03, 3: 0.12, 4: 0.35}
 PRIOR_XA_PER90 = {1: 0.00, 2: 0.05, 3: 0.15, 4: 0.10}
+
+# League-wide baselines measured from the 2026/27 season so far, per
+# appearance of 60+ minutes. Bonus and defensive contribution are both
+# streaky, so a player's own numbers are blended with these. The pull is
+# worth BONUS_PRIOR_GAMES / DC_PRIOR_GAMES "average" appearances and fades
+# as he plays more.
+PRIOR_BONUS_PER_GAME = {1: 0.27, 2: 0.24, 3: 0.31, 4: 0.52}
+PRIOR_DC_HIT_RATE = {1: 0.0, 2: 0.26, 3: 0.13, 4: 0.01}
+BONUS_PRIOR_GAMES = 8
+DC_PRIOR_GAMES = 6
+
+# Home teams score about 8% more than the league average, away teams about
+# 8% less. Used both for goals and assists and for clean sheet chances.
+HOME_GOALS_FACTOR = 1.08
+AWAY_GOALS_FACTOR = 0.92
+# Keeps one extreme opponent rating from swinging a player too far.
+FIXTURE_FACTOR_MIN = 0.6
+FIXTURE_FACTOR_MAX = 1.5
 
 GOAL_POINTS = {1: 6, 2: 6, 3: 5, 4: 4}          # element_type -> points per goal
 CLEAN_SHEET_POINTS = {1: 4, 2: 4, 3: 1, 4: 0}   # element_type -> points per clean sheet
@@ -87,9 +111,21 @@ def _player_recent_form(history, pos):
 
     avg_minutes = _weighted_avg(minutes_list, weights)
     avg_starts = _weighted_avg(starts_list, weights)
-    avg_dc_points = _weighted_avg([_dc_points_for_row(h, pos) for h in recent], weights)
-    avg_bonus = _weighted_avg([h["bonus"] for h in recent], weights)
     avg_saves = _weighted_avg([h["saves"] for h in recent], weights)
+
+    # Bonus and defensive contribution use the whole season (not just the
+    # last six games) and only full appearances, then are blended with the
+    # league rate for the position so a couple of big games can't dominate.
+    full = [h for h in history if h["minutes"] >= 60]
+    bonus_rate = (
+        sum(h["bonus"] for h in full) + PRIOR_BONUS_PER_GAME[pos] * BONUS_PRIOR_GAMES
+    ) / (len(full) + BONUS_PRIOR_GAMES)
+    dc_hits = sum(1 for h in full if _dc_points_for_row(h, pos) > 0)
+    dc_rate = (
+        dc_hits + PRIOR_DC_HIT_RATE[pos] * DC_PRIOR_GAMES
+    ) / (len(full) + DC_PRIOR_GAMES)
+    avg_bonus = bonus_rate
+    avg_dc_points = DC_POINTS_AWARDED * dc_rate
 
     return {
         "xg_per90": shrunk_per90("expected_goals", PRIOR_XG_PER90[pos]),
@@ -136,6 +172,17 @@ def _availability_multiplier(element):
     if chance is None:
         return 1.0
     return chance / 100.0
+
+
+def _fixture_attack_factor(opponent_id, is_home, team_form):
+    """
+    How much easier or harder than normal this fixture is for scoring:
+    the opponent's recent goals conceded relative to the league average
+    (above 1 means a leaky defence), times a home or away adjustment.
+    """
+    opp_defence = team_form[opponent_id]["defence"]
+    venue = HOME_GOALS_FACTOR if is_home else AWAY_GOALS_FACTOR
+    return max(FIXTURE_FACTOR_MIN, min(FIXTURE_FACTOR_MAX, opp_defence * venue))
 
 
 def _future_fixtures_for_team(fixtures, team_id, from_event, horizon_gws):
@@ -190,15 +237,20 @@ def build_expected_points(bootstrap, fixtures, element_summaries, team_form,
             is_home = fx["team_h"] == team_id
             opponent_id = fx["team_a"] if is_home else fx["team_h"]
 
-            attacking_pts = minutes_factor * (
+            fixture_factor = _fixture_attack_factor(opponent_id, is_home, team_form)
+            attacking_pts = minutes_factor * fixture_factor * (
                 GOAL_POINTS[pos] * form["xg_per90"] + ASSIST_POINTS * form["xa_per90"]
             )
 
+            # Clean sheets: GK and DEF get 4 points, MID gets 1. Only GK and
+            # DEF lose points for goals conceded. The opponent scores a bit
+            # more at home and a bit less away.
             cs_prob = 0.0
             gc_penalty = 0.0
-            if pos in (1, 2):  # GK/DEF only score for clean sheets & concede penalty
-                cs_prob = clean_sheet_probability(team_id, opponent_id, team_form)
-                xgc = expected_goals_conceded(team_id, opponent_id, team_form)
+            if pos in (1, 2, 3):
+                opp_venue = AWAY_GOALS_FACTOR if is_home else HOME_GOALS_FACTOR
+                xgc = expected_goals_conceded(team_id, opponent_id, team_form) * opp_venue
+                cs_prob = math.exp(-xgc)
                 gc_penalty = (xgc / 2.0) * GOALS_CONCEDED_PENALTY_PER_2[pos] * minutes_factor
 
             cs_pts = minutes_factor * CLEAN_SHEET_POINTS[pos] * cs_prob
@@ -215,7 +267,9 @@ def build_expected_points(bootstrap, fixtures, element_summaries, team_form,
 
             xpts = (attacking_pts + cs_pts - gc_penalty + save_pts
                     + dc_pts + bonus_pts + appearance_pts)
-            per_gw[fx["event"]] = round(xpts, 2)
+            # In a double gameweek a team has two fixtures in one event, so
+            # the points from each game are added together.
+            per_gw[fx["event"]] = round(per_gw.get(fx["event"], 0.0) + xpts, 2)
 
         # Decay-weighted total across the horizon for transfer/chip decisions.
         total = 0.0
