@@ -23,8 +23,8 @@ Net change vs. holding, over the horizon: **+20.4 points**
 
 ### Best double move
 **OUT:** Semenyo, Crooks  
-**IN:** Rudoni, Mbeumo (free transfer(s))  
-Net change vs. holding, over the horizon: **+28.7 points**
+**IN:** E.Le Fée, Tavernier (free transfer(s))  
+Net change vs. holding, over the horizon: **+27.4 points**
 
 ### Best triple move
 **OUT:** Semenyo, João Pedro, Crooks  
@@ -56,7 +56,7 @@ Net change vs. holding, over the horizon: **+34.7 points**
 
 ## Chip Watch
 - **Bench Boost**: Your bench is projected 9.4 points this week.
-- **Wildcard**: An unconstrained rebuild projects 35.4 points higher than your current squad over the horizon.
+- **Wildcard**: An unconstrained rebuild projects 29.2 points higher than your current squad over the horizon.
 
 ## PGA Fantasy League
 | Rank | Manager | Points |
